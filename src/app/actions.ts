@@ -75,3 +75,71 @@ export async function shortenUrl(longUrl: string, customAlias?: string) {
   
   return { success: true, shortUrl, originalUrl: formattedUrl };
 }
+
+export async function getLinks() {
+  const authCookie = (await cookies()).get('auth');
+  if (authCookie?.value !== 'true') {
+    return { error: 'Unauthorized: You must login first.' };
+  }
+
+  const { data, error } = await supabase
+    .from('links')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Supabase error:', error);
+    return { error: `Database Error: ${error.message || JSON.stringify(error)}` };
+  }
+
+  return { success: true, links: data };
+}
+
+export async function deleteLink(id: string) {
+  const authCookie = (await cookies()).get('auth');
+  if (authCookie?.value !== 'true') {
+    return { error: 'Unauthorized: You must login first.' };
+  }
+
+  const { error } = await supabase
+    .from('links')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    console.error('Supabase error:', error);
+    return { error: `Database Error: ${error.message || JSON.stringify(error)}` };
+  }
+
+  return { success: true };
+}
+
+export async function updateLink(id: string, newUrl: string) {
+  const authCookie = (await cookies()).get('auth');
+  if (authCookie?.value !== 'true') {
+    return { error: 'Unauthorized: You must login first.' };
+  }
+
+  let formattedUrl = newUrl.trim();
+  if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+    formattedUrl = 'https://' + formattedUrl;
+  }
+
+  try {
+    new URL(formattedUrl);
+  } catch (e) {
+    return { error: 'Please enter a valid URL' };
+  }
+
+  const { error } = await supabase
+    .from('links')
+    .update({ original_url: formattedUrl })
+    .eq('id', id);
+
+  if (error) {
+    console.error('Supabase error:', error);
+    return { error: `Database Error: ${error.message || JSON.stringify(error)}` };
+  }
+
+  return { success: true, originalUrl: formattedUrl };
+}
