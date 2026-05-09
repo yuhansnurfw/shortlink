@@ -50,7 +50,7 @@ export function ShortenForm() {
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <UrlInput
-            type="url"
+            type="text"
             placeholder="Enter your long URL here..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}

@@ -1,16 +1,19 @@
 'use server';
 
 import crypto from 'crypto';
+import { supabase } from '@/lib/supabase';
 
 export async function shortenUrl(longUrl: string, customAlias?: string) {
-  // Simulate network delay for effect
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
   // Basic validation for URL
+  let formattedUrl = longUrl.trim();
+  if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+    formattedUrl = 'https://' + formattedUrl;
+  }
+
   try {
-    new URL(longUrl);
+    new URL(formattedUrl);
   } catch (e) {
-    return { error: 'Please enter a valid URL (e.g., https://example.com)' };
+    return { error: 'Please enter a valid URL (e.g., google.com or https://google.com)' };
   }
 
   let code = '';
@@ -30,10 +33,20 @@ export async function shortenUrl(longUrl: string, customAlias?: string) {
     code = crypto.randomBytes(3).toString('hex');
   }
 
-  const shortUrl = `5id.me/${code}`;
+  // Save to Supabase
+  const { error } = await supabase
+    .from('links')
+    .insert([{ id: code, original_url: formattedUrl }]);
 
-  // In a real app, you would check if the code already exists in the database
-  // and save { code, longUrl } to the database here.
+  if (error) {
+    if (error.code === '23505' || error.message.includes('duplicate key')) {
+      return { error: 'Alias is already taken. Please try another one.' };
+    }
+    console.error('Supabase error:', error);
+    return { error: 'Failed to save URL to database.' };
+  }
+
+  const shortUrl = `5id.me/${code}`;
   
-  return { success: true, shortUrl, originalUrl: longUrl };
+  return { success: true, shortUrl, originalUrl: formattedUrl };
 }
