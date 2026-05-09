@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   // Await params since it can be asynchronous in Next.js 15
   const resolvedParams = await params;
