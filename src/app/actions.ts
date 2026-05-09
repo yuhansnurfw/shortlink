@@ -43,7 +43,7 @@ export async function shortenUrl(longUrl: string, customAlias?: string) {
       return { error: 'Alias is already taken. Please try another one.' };
     }
     console.error('Supabase error:', error);
-    return { error: 'Failed to save URL to database.' };
+    return { error: `Database Error: ${error.message || JSON.stringify(error)}` };
   }
 
   const shortUrl = `5id.me/${code}`;
