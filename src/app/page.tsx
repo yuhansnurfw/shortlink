@@ -1,6 +1,10 @@
+import { cookies } from "next/headers";
 import { ShortenForm } from "@/components/ShortenForm";
+import { LoginForm } from "@/components/LoginForm";
 
-export default function Home() {
+export default async function Home() {
+  const isAuthenticated = (await cookies()).get('auth')?.value === 'true';
+
   return (
     <main className="flex-1 flex flex-col items-center justify-center p-6 relative overflow-hidden">
       {/* Decorative background elements */}
@@ -19,7 +23,9 @@ export default function Home() {
         </div>
 
         {/* Main Interface */}
-        <ShortenForm />
+        <div className="w-full">
+          {isAuthenticated ? <ShortenForm /> : <LoginForm />}
+        </div>
 
         {/* Footer info */}
         <div className="flex gap-8 text-sm text-gray-500">
